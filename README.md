@@ -1,3 +1,5 @@
+# NOTE: This is a work in progress, come back in a week
+
 # Enpass to 1password converter
 
 Unfortunately, 1password does not provide a proper converter when migrating from [Enpass](https://enpass.io) to

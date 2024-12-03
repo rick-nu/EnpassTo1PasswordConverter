@@ -1,10 +1,15 @@
 import slugify from "./helpers/slugify.ts";
+import {OnePasswordItem} from "./types.ts";
 
 console.log("Running converter...");
 
 const enpass = JSON.parse(await Deno.readTextFile(`${Deno.cwd()}/export.json`));
 
-// console.log(enpass);
+try {
+	await Deno.remove("./1password", { recursive: true });
+} catch (_error) {
+	// do nothing
+}
 
 try {
 	await Deno.mkdir("./1password");
@@ -43,7 +48,7 @@ for (const item of enpass.items) {
 
 	const file = `./1password/${count}-${slugify(item.title)}.json`;
 
-	const newFields = [];
+	const newFields: OnePasswordItem[] = [];
 	const newSections = [];
 
 	let currentSection = null;
@@ -74,7 +79,7 @@ for (const item of enpass.items) {
 			continue;
 		}
 
-		const newItem = {
+		const newItem: OnePasswordItem = {
 			id: slugify(`${currentSection ? `${currentSection}-` : ""}${field.label}`),
 			type: field.type,
 			label: field.label,
