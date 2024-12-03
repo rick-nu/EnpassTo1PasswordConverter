@@ -1,4 +1,4 @@
-# NOTE: This is a work in progress, come back in a week
+# ⚠️ WIP: come back in a week ⚠️
 
 # Enpass to 1password converter
 
@@ -15,4 +15,4 @@ Unfortunately, 1password does not provide a proper converter when migrating from
 
 1. Download this project to your PC
 1. Open Enpass, click the menu > file > export. Export `export.json` to the same location as this downloaded project.
-1. Go to the project in your terminal and run `deno --allow-read --allow-write main.ts`
+1. Go to the project in your terminal and run `deno --allow-read --allow-write enpass-to-1password.ts`
