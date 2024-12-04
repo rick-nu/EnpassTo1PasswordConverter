@@ -139,4 +139,4 @@ for (const enpassItem of enpass.items) {
 console.log('%c========================================', 'color: blue');
 console.log(`%cEnpass to 1Password converter`, 'color: blue');
 console.log('%c========================================', 'color: blue');
-console.log(`%cImport completed! You're welcome, cheers! https://github.com/rick-nu`, 'color: green');
+console.log(`%cImport completed! You're welcome! ~Rick (https://github.com/rick-nu)`, 'color: green');
