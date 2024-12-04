@@ -6,12 +6,16 @@ Unfortunately, 1password does not provide a proper converter when migrating from
 
 ## Requirements
 
+Have the following installed on your PC:
+
 - [deno](https://docs.deno.com/runtime/getting_started/installation/)
 - [1password CLI](https://developer.1password.com/docs/cli/get-started/)
 
 ## How to run
 
 1. Download this project to your PC
-1. Open Enpass, click the menu > file > export. Export `export.json` to the same location as this downloaded project.
+1. Open Enpass, click the menu > file > export. Export `export.json` to the same location as this downloaded project
 1. Go to the project in your terminal and run `deno --allow-read --allow-write --allow-run enpass-to-1password.ts`
-   - the script will create a `Enpass Import` vault (and recreates it every time you run the script)
+1. The script will create a `Enpass Import` vault (and recreates it every time you run the script)
+1. After a while, all password have been inserted to 1Password via its CLI
+1. All done, consider a (small) donation (https://github.com/sponsors/rick-nu)
