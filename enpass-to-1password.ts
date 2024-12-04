@@ -5,7 +5,6 @@ import getNewField from './helpers/getNewField.ts';
 
 const vaultName = 'Enpass Import';
 
-
 console.log('%c========================================', 'color: blue');
 console.log(`%cEnpass to 1Password converter`, 'color: blue');
 console.log('%c========================================', 'color: blue');
