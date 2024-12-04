@@ -5,13 +5,20 @@ import getNewField from './helpers/getNewField.ts';
 
 const vaultName = 'Enpass Import';
 
+
+console.log('%c========================================', 'color: blue');
+console.log(`%cEnpass to 1Password converter`, 'color: blue');
+console.log('%c========================================', 'color: blue');
+
 console.log('Running converter...');
 
 const enpass = JSON.parse(await Deno.readTextFile(`${Deno.cwd()}/export.json`)) as EnpassFile;
 
-console.log(`Deleting vault "Enpass Import" if it exists`);
+console.log(`Deleting vault "Enpass Import" if it exists...`);
 
 await execute('op', ['vault', 'delete', vaultName]);
+
+console.log(`Creating vault "Enpass Import"...`);
 
 await execute('op', ['vault', 'create', vaultName]);
 
@@ -53,7 +60,7 @@ let count = 0;
 for (const enpassItem of enpass.items) {
 	count++;
 	console.log('%c========================================', 'color: blue');
-	console.log(`%c${enpassItem.title}`, 'color: blue');
+	console.log(`%c(${count}/${enpass.items.length}) %c${enpassItem.title} `, 'color: blue', 'color: initial');
 	console.log('%c========================================', 'color: blue');
 
 	const onePasswordOutputFile = `./1password/${count}-${slugify(enpassItem.title)}.json`;
@@ -65,7 +72,10 @@ for (const enpassItem of enpass.items) {
 	let fieldCount = 1;
 
 	for (const enpassField of enpassItem.fields) {
-		// console.log(enpassField);
+		if (enpassField.deleted === 1) {
+			console.log(`%c${enpassField.label} was removed, skip.`, 'color: gray');
+			continue;
+		}
 
 		if (enpassField.type === 'section') {
 			const sectionId = slugify(enpassField.label);
@@ -81,11 +91,6 @@ for (const enpassItem of enpass.items) {
 			});
 
 			currentSection = sectionId;
-			continue;
-		}
-
-		if (enpassField.deleted === 1) {
-			console.log(`%c${enpassField.label} was removed, skip.`, 'color: gray');
 			continue;
 		}
 
@@ -109,7 +114,7 @@ for (const enpassItem of enpass.items) {
 		fieldCount++;
 
 		console.log(
-			`%c${currentSection ? `[${currentSection}] ` : ''}${
+			`%c${currentSection ? `(${currentSection}) ` : ''}${
 				newItem.purpose ? `[${newItem.purpose}] ` : ''
 			}${newItem.label} = ${['CONCEALED', 'OTP'].includes(newItem.type) ? '•••••' : newItem.value}`,
 			'color: green',
@@ -131,3 +136,8 @@ for (const enpassItem of enpass.items) {
 
 	await execute('op', [`item`, `create`, `--template`, onePasswordOutputFile, '--vault', vaultName]);
 }
+
+console.log('%c========================================', 'color: blue');
+console.log(`%cEnpass to 1Password converter`, 'color: blue');
+console.log('%c========================================', 'color: blue');
+console.log(`%cImport completed! You're welcome, cheers! https://github.com/rick-nu`, 'color: green');
