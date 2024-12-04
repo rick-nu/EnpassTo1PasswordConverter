@@ -48,7 +48,7 @@ function project:update {
 
 function project:run {
 	title "Run enpass to 1password"
-	deno --allow-read --allow-write enpass-to-1password.ts
+	deno --allow-read --allow-write --allow-run enpass-to-1password.ts
 }
 
 function project:git-config {

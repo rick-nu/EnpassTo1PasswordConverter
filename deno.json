@@ -8,6 +8,7 @@
 	"fmt": {
 		"useTabs": true,
 		"indentWidth": 4,
-		"lineWidth": 120
+		"lineWidth": 120,
+		"singleQuote": true
 	}
 }

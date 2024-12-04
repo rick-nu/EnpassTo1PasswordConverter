@@ -3,9 +3,9 @@ const slugify = (value: unknown): string => {
 	slug = slug.trim();
 	slug = slug.toLowerCase(); // convert string to lowercase
 	slug = slug
-		.replace(/[^a-z0-9 -]/g, "") // remove any non-alphanumeric characters
-		.replace(/\s+/g, "-") // replace spaces with hyphens
-		.replace(/-+/g, "-"); // remove consecutive hyphens
+		.replace(/[^a-z0-9 -]/g, '') // remove any non-alphanumeric characters
+		.replace(/\s+/g, '-') // replace spaces with hyphens
+		.replace(/-+/g, '-'); // remove consecutive hyphens
 
 	return slug;
 };

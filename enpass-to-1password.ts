@@ -1,23 +1,33 @@
-import slugify from "./helpers/slugify.ts";
-import {OnePasswordItem} from "./types.ts";
+import slugify from './helpers/slugify.ts';
+import { EnpassFile, OnePasswordItem } from './types.ts';
+import execute from './helpers/execute.ts';
+import getNewField from './helpers/getNewField.ts';
 
-console.log("Running converter...");
+const vaultName = 'Enpass Import';
 
-const enpass = JSON.parse(await Deno.readTextFile(`${Deno.cwd()}/export.json`));
+console.log('Running converter...');
+
+const enpass = JSON.parse(await Deno.readTextFile(`${Deno.cwd()}/export.json`)) as EnpassFile;
+
+console.log(`Deleting vault "Enpass Import" if it exists`);
+
+await execute('op', ['vault', 'delete', vaultName]);
+
+await execute('op', ['vault', 'create', vaultName]);
 
 try {
-	await Deno.remove("./1password", { recursive: true });
+	await Deno.remove('./1password', { recursive: true });
 } catch (_error) {
 	// do nothing
 }
 
 try {
-	await Deno.mkdir("./1password");
+	await Deno.mkdir('./1password');
 
 	console.log(
-		"Created directory %c./1password %cto output all 1password templates to.",
-		"color: green",
-		"color: initial",
+		'Created directory %c./1password %cto output all 1password templates to.',
+		'color: green',
+		'color: initial',
 	);
 } catch (error) {
 	if (!(error instanceof Deno.errors.AlreadyExists)) {
@@ -25,91 +35,99 @@ try {
 	}
 
 	console.log(
-		"Directory %c./1password %calready exists.",
-		"color: green",
-		"color: initial",
+		'Directory %c./1password %calready exists.',
+		'color: green',
+		'color: initial',
 	);
 }
 
 if (!enpass.items || enpass.items.length < 1) {
-	console.log("No enpass items found in the export.");
+	console.log('No enpass items found in the export.');
 	Deno.exit(1);
 }
 
-console.log(`Detected %c${enpass.items.length} %cpassword from enpass.`, "color: green", "color: initial");
+console.log(`Detected %c${enpass.items.length} %cpassword from enpass.`, 'color: green', 'color: initial');
 
 let count = 0;
 
-for (const item of enpass.items) {
+for (const enpassItem of enpass.items) {
 	count++;
-	console.log("%c========================================", "color: blue");
-	console.log(`%c${item.title}`, "color: blue");
-	console.log("%c========================================", "color: blue");
+	console.log('%c========================================', 'color: blue');
+	console.log(`%c${enpassItem.title}`, 'color: blue');
+	console.log('%c========================================', 'color: blue');
 
-	const file = `./1password/${count}-${slugify(item.title)}.json`;
+	const onePasswordOutputFile = `./1password/${count}-${slugify(enpassItem.title)}.json`;
 
-	const newFields: OnePasswordItem[] = [];
-	const newSections = [];
+	const onePasswordFields: OnePasswordItem[] = [];
+	const onePasswordSections = [];
 
 	let currentSection = null;
+	let fieldCount = 1;
 
-	for (const field of item.fields) {
-		console.log(field);
+	for (const enpassField of enpassItem.fields) {
+		// console.log(enpassField);
 
-		if (field.type === "section") {
-			const sectionId = slugify(field.label);
+		if (enpassField.type === 'section') {
+			const sectionId = slugify(enpassField.label);
 
 			if (sectionId === 'additional-details') {
-				console.log('%cIgnoring section additional details.', 'color: red');
+				console.log('%cSkipping section additional details.', 'color: gray');
 				continue;
 			}
 
-			newSections.push({
+			onePasswordSections.push({
 				id: sectionId,
-				label: field.label,
+				label: enpassField.label,
 			});
 
 			currentSection = sectionId;
-			console.log("----------------------------------------");
 			continue;
 		}
 
-		if (field.value === '') {
-			console.log(`%c${field.label} has an empty value, skipping...`, 'color: red');
+		if (enpassField.deleted === 1) {
+			console.log(`%c${enpassField.label} was removed, skip.`, 'color: gray');
 			continue;
 		}
 
-		const newItem: OnePasswordItem = {
-			id: slugify(`${currentSection ? `${currentSection}-` : ""}${field.label}`),
-			type: field.type,
-			label: field.label,
-			value: field.value,
-		};
-
-		if (currentSection) {
-			newItem.section = { id: currentSection };
+		if (enpassField.value === '') {
+			console.log(`%c${enpassField.label} empty, skip.`, 'color: gray');
+			continue;
 		}
 
-		newFields.push(newItem);
+		if (['.Android#'].includes(enpassField.type)) {
+			console.log(`%cSkipping field type ${enpassField.type}.`, 'color: gray');
+			continue;
+		}
 
-		console.log("----------------------------------------");
+		const newItem = getNewField(fieldCount, enpassField, currentSection, onePasswordFields);
+
+		if (!newItem) {
+			console.log(`%cNo new item was created!`, 'color: red');
+			continue;
+		}
+
+		fieldCount++;
+
+		console.log(
+			`%c${currentSection ? `[${currentSection}] ` : ''}${
+				newItem.purpose ? `[${newItem.purpose}] ` : ''
+			}${newItem.label} = ${['CONCEALED', 'OTP'].includes(newItem.type) ? '•••••' : newItem.value}`,
+			'color: green',
+		);
+
+		onePasswordFields.push(newItem);
 	}
 
-	console.log(`%c${file}`, "color: yellow");
-
-	const passwordTemplate = {
-		title: item.title,
-		sections: newSections,
-		fields: newFields,
+	const onePasswordTemplate = {
+		title: enpassItem.title,
+		category: 'LOGIN',
+		sections: onePasswordSections,
+		fields: onePasswordFields,
 	};
 
-	console.log(passwordTemplate);
+	await Deno.writeTextFile(onePasswordOutputFile, JSON.stringify(onePasswordTemplate, null, '\t'));
 
-	await Deno.writeTextFile(file, JSON.stringify(passwordTemplate, null, "\t"));
+	console.log(`File ${onePasswordOutputFile} exported.`);
 
-	console.log("File exported.");
-
-	if (count >= 10) {
-		break;
-	}
+	await execute('op', [`item`, `create`, `--template`, onePasswordOutputFile, '--vault', vaultName]);
 }
