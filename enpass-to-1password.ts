@@ -83,7 +83,7 @@ for (const enpassItem of enpass.items) {
 				href: enpassField.value,
 			});
 			console.log(
-				`%cAdded URL ${enpassField.label} = ${enpassField.value}.`,
+				`%cAdded URL: ${enpassField.label} = ${enpassField.value}`,
 				'color: green',
 			);
 			continue;
