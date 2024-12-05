@@ -66,6 +66,7 @@ for (const enpassItem of enpass.items) {
 
 	const onePasswordFields: OnePasswordItem[] = [];
 	const onePasswordSections = [];
+	const onePasswordWebsites = [];
 
 	let currentSection = null;
 	let fieldCount = 1;
@@ -73,6 +74,18 @@ for (const enpassItem of enpass.items) {
 	for (const enpassField of enpassItem.fields) {
 		if (enpassField.deleted === 1) {
 			console.log(`%c${enpassField.label} was removed, skip.`, 'color: gray');
+			continue;
+		}
+
+		if (enpassField.type === 'url') {
+			onePasswordWebsites.push({
+				label: enpassField.label,
+				href: enpassField.value,
+			});
+			console.log(
+				`%cAdded URL ${enpassField.label} = ${enpassField.value}.`,
+				'color: green',
+			);
 			continue;
 		}
 
@@ -125,6 +138,7 @@ for (const enpassItem of enpass.items) {
 	const onePasswordTemplate = {
 		title: enpassItem.title,
 		category: 'LOGIN',
+		urls: onePasswordWebsites,
 		sections: onePasswordSections,
 		fields: onePasswordFields,
 	};
