@@ -52,6 +52,8 @@ if (!enpass.items || enpass.items.length < 1) {
 	Deno.exit(1);
 }
 
+const enpassItemsWithAttachment = [];
+
 console.log(`Detected %c${enpass.items.length} %cpassword from enpass.`, 'color: green', 'color: initial');
 
 let count = 0;
@@ -62,6 +64,10 @@ for (const enpassItem of enpass.items) {
 	console.log(`%c(${count}/${enpass.items.length}) %c${enpassItem.title} `, 'color: blue', 'color: initial');
 	console.log('%c========================================', 'color: blue');
 
+	if (enpassItem.attachments && enpassItem.attachments.length) {
+		enpassItemsWithAttachment.push(enpassItem.title);
+	}
+
 	const onePasswordOutputFile = `./1password/${count}-${slugify(enpassItem.title)}.json`;
 
 	const onePasswordFields: OnePasswordItem[] = [];
@@ -71,7 +77,7 @@ for (const enpassItem of enpass.items) {
 	let currentSection = null;
 	let fieldCount = 1;
 
-	for (const enpassField of enpassItem.fields) {
+	for (const enpassField of enpassItem.fields || []) {
 		if (enpassField.deleted === 1) {
 			console.log(`%c${enpassField.label} was removed, skip.`, 'color: gray');
 			continue;
@@ -154,3 +160,10 @@ console.log('%c========================================', 'color: blue');
 console.log(`%cEnpass to 1Password converter`, 'color: blue');
 console.log('%c========================================', 'color: blue');
 console.log(`%cImport completed! You're welcome! ~Rick (https://github.com/rick-nu)`, 'color: green');
+
+if (enpassItemsWithAttachment.length) {
+	console.log(`%cThere were Enpass items with attachments. Please upload the attachments manually:`, 'color: orange');
+	for (const itemTitle of enpassItemsWithAttachment) {
+		console.log('  - ' + itemTitle);
+	}
+}
